@@ -44,7 +44,7 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center px-6 py-10">
       <motion.div
-        className="w-full max-w-6xl bg-gradient-to-br from-slate-900 via-slate-900/95 to-slate-950 border border-slate-800 rounded-3xl shadow-2xl flex flex-col lg:flex-row items-center lg:items-stretch overflow-hidden"
+        className="w-full max-w-6xl bg-linear-to-br from-slate-900 via-slate-900/95 to-slate-950 border border-slate-800 rounded-3xl shadow-2xl flex flex-col lg:flex-row items-center lg:items-stretch overflow-hidden"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7 }}
