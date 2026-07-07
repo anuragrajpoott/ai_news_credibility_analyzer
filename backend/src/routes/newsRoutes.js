@@ -19,7 +19,7 @@ const mlLimiter = rateLimit({
 });
 
 // 📌 Check Fake News (Requires Auth)
-router.post("/check-news", auth, mlLimiter, checkNews);
+router.post("/check-news", mlLimiter, checkNews);
 
 // 📌 Get User History
 router.get("/news/history", auth, getUserNews);

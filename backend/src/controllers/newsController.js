@@ -1,13 +1,13 @@
 import axios from "axios";
 import { NewsCheck } from "../models/News.js";
 
-// ✅ Check News + Save full form
+// ✅ Check News + Save
 export const checkNews = async (req, res) => {
   try {
     const { title, date, subject, text } = req.body;
     const userId = req.user?.id;
 
-    // Validate required fields
+    // Validation
     if (!title || !date || !subject || !text) {
       return res.status(400).json({
         success: false,
@@ -22,14 +22,70 @@ export const checkNews = async (req, res) => {
       });
     }
 
-    // Call Python API
-    const pythonApiUrl = process.env.PYTHON_API_URL;
-    const py = await axios.post(pythonApiUrl, { text });
+    const prompt = `
+You are an AI News Credibility Analyzer.
 
-    const prediction = (py.data.label || py.data.prediction || "unknown").toLowerCase();
-    const confidence = py.data.confidence ?? null;
+Analyze the following news article.
 
-    // ✅ Save all fields
+Return ONLY valid JSON in this exact format:
+
+{
+  "prediction": "real",
+  "confidence": 85,
+  "reason": "Short explanation"
+}
+
+Rules:
+- prediction must be one of:
+  real
+  fake
+  misleading
+  unverifiable
+
+- confidence must be a number from 0 to 100
+
+Article:
+${text}
+`;
+
+    const geminiResponse = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        contents: [
+          {
+            parts: [
+              {
+                text: prompt,
+              },
+            ],
+          },
+        ],
+      }
+    );
+
+    const rawText =
+      geminiResponse.data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+    let prediction = "unknown";
+    let confidence = 0;
+    let reason = "Analysis unavailable";
+
+    try {
+      const cleaned = rawText
+        .replace(/```json/g, "")
+        .replace(/```/g, "")
+        .trim();
+
+      const parsed = JSON.parse(cleaned);
+
+      prediction = parsed.prediction?.toLowerCase() || "unknown";
+      confidence = Number(parsed.confidence) || 0;
+      reason = parsed.reason || "No explanation provided";
+    } catch (parseError) {
+      console.error("Gemini JSON Parse Error:", parseError);
+      console.log("Gemini Raw Response:", rawText);
+    }
+
     const saved = await NewsCheck.create({
       userId,
       title,
@@ -38,14 +94,23 @@ export const checkNews = async (req, res) => {
       text,
       prediction,
       confidence,
+      reason,
     });
 
-    res.status(200).json({ success: true, data: saved });
+    return res.status(200).json({
+      success: true,
+      data: saved,
+    });
   } catch (error) {
-    res.status(500).json({
+    console.error(
+      "News Analysis Error:",
+      error?.response?.data || error.message
+    );
+
+    return res.status(500).json({
       success: false,
-      message: "Error checking news",
-      error: error.message,
+      message: "Error analyzing news",
+      error: error?.response?.data || error.message,
     });
   }
 };
@@ -53,14 +118,24 @@ export const checkNews = async (req, res) => {
 // ✅ Fetch User History
 export const getUserNews = async (req, res) => {
   try {
-    const news = await NewsCheck.find({ userId: req.user.id }).sort({ createdAt: -1 });
-    res.status(200).json({ success: true, data: news });
+    const news = await NewsCheck.find({
+      userId: req.user.id,
+    }).sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      data: news,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to fetch history", error: error.message });
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch history",
+      error: error.message,
+    });
   }
 };
 
-// ✅ Delete single record
+// ✅ Delete Single Record
 export const deleteUserNews = async (req, res) => {
   try {
     const deleted = await NewsCheck.findOneAndDelete({
@@ -69,21 +144,41 @@ export const deleteUserNews = async (req, res) => {
     });
 
     if (!deleted) {
-      return res.status(404).json({ success: false, message: "Record not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Record not found",
+      });
     }
 
-    res.json({ success: true, message: "Deleted successfully" });
+    return res.status(200).json({
+      success: true,
+      message: "Deleted successfully",
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to delete", error: error.message });
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete",
+      error: error.message,
+    });
   }
 };
 
-// ✅ Clear history
+// ✅ Clear Entire History
 export const clearUserNews = async (req, res) => {
   try {
-    await NewsCheck.deleteMany({ userId: req.user.id });
-    res.json({ success: true, message: "All history cleared" });
+    await NewsCheck.deleteMany({
+      userId: req.user.id,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "All history cleared",
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to clear history", error: error.message });
+    return res.status(500).json({
+      success: false,
+      message: "Failed to clear history",
+      error: error.message,
+    });
   }
 };

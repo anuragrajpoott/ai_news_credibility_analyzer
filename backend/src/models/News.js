@@ -2,11 +2,11 @@ import mongoose from "mongoose";
 
 const newsSchema = new mongoose.Schema(
   {
-    userId: { 
-      type: mongoose.Schema.Types.ObjectId, 
-      ref: "User", 
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
-      index: true 
+      index: true,
     },
 
     title: {
@@ -26,31 +26,37 @@ const newsSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      default: "News"
+      default: "News",
     },
 
-    text: { 
-      type: String, 
+    text: {
+      type: String,
       required: true,
       trim: true,
       minlength: 10,
     },
 
-    prediction: { 
+    prediction: {
       type: String,
-      enum: ["real", "fake", "unknown"], 
-      default: "unknown" 
+      enum: ["real", "fake", "misleading", "unverifiable", "unknown"],
+      default: "unknown",
     },
 
     confidence: {
       type: Number,
       default: null,
       min: 0,
-      max: 1,
-    }
-  },
+      max: 100,
+    },
 
-  { timestamps: true } // ✅ adds createdAt + updatedAt
+    reason: {
+      type: String,
+      default: "",
+    },
+  },
+  {
+    timestamps: true,
+  }
 );
 
 export const NewsCheck = mongoose.model("NewsCheck", newsSchema);
