@@ -1,186 +1,197 @@
-import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { checkNews } from "../services/operations/newsOperation";
-import { motion, AnimatePresence } from "framer-motion";
-import toast from "react-hot-toast";
+import { useState } from "react";
+import { analyzeNews } from "../services/analyzeService";
 
 const Home = () => {
-  const dispatch = useDispatch();
-  const { result, loading } = useSelector((state) => state.news);
+  const [text, setText] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState("");
 
-  const [formData, setFormData] = useState({
-    title: "",
-    date: "",
-    subject: "News",
-    text: "",
-  });
-
-  const [showModal, setShowModal] = useState(false);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const verdictColors = {
+    credible: "text-green-400",
+    misleading: "text-yellow-400",
+    suspicious: "text-red-400",
+    unverifiable: "text-slate-400",
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleAnalyze = async () => {
+    setError("");
+    setResult(null);
 
-    // ✅ better validation
-    if (!formData.title.trim()) return toast.error("Please enter a title.");
-    if (!formData.date) return toast.error("Please select a date.");
-    if (!formData.text.trim()) return toast.error("Please enter news content.");
+    if (text.trim().length < 20) {
+      setError("Please enter a longer article or claim.");
+      return;
+    }
 
-    const promise = dispatch(checkNews(formData));
+    try {
+      setLoading(true);
 
-    promise.then(() => {
-      setShowModal(true);
-    }).catch(() => {
-      toast.error("News analysis failed");
-    });
+      const response = await analyzeNews(text);
+
+      if (response.success) {
+        setResult(response.data);
+      } else {
+        setError(response.message || "Analysis failed.");
+      }
+    } catch (err) {
+      console.error(err);
+
+      setError(
+        err?.response?.data?.message ||
+          "Failed to analyze news. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const label = result?.prediction?.toLowerCase();
+  const loadSampleNews = () => {
+    setText(
+      "Scientists claim a newly discovered plant species can absorb ten times more carbon dioxide than existing forests, potentially helping combat climate change."
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center px-6 py-10">
-      <motion.div
-        className="w-full max-w-6xl bg-linear-to-br from-slate-900 via-slate-900/95 to-slate-950 border border-slate-800 rounded-3xl shadow-2xl flex flex-col lg:flex-row items-center lg:items-stretch overflow-hidden"
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7 }}
-      >
-        {/* LEFT INTRO */}
-        <div className="lg:w-1/2 w-full p-10 flex flex-col justify-center space-y-6 bg-slate-900/50 backdrop-blur-sm">
-          <motion.h1
-            initial={{ opacity: 0, y: -15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="text-5xl font-extrabold text-blue-400 leading-tight"
-          >
-            Know the Truth 🧠
-          </motion.h1>
+    <div
+      id="analyze"
+      className="min-h-screen bg-slate-950 text-white px-6 py-16"
+    >
+      <div className="max-w-5xl mx-auto">
+        {/* HERO */}
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-bold mb-4">
+            AI News Credibility Analyzer
+          </h1>
 
-          <p className="text-gray-400 text-lg max-w-md leading-relaxed">
-            Stop misinformation in its tracks. Enter article details below, and let our AI analyze it in seconds.
+          <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+            Paste a news article, claim, or social media post and receive an
+            AI-powered credibility assessment.
           </p>
-
-          <div className="flex space-x-3 pt-3 text-gray-500 text-sm">
-            <span>⚡ AI-powered Detection</span>
-            <span>🧩 NLP Model Integration</span>
-          </div>
         </div>
 
-        {/* RIGHT FORM */}
-        <motion.form
-          onSubmit={handleSubmit}
-          className="lg:w-1/2 w-full bg-slate-900/80 p-10 flex flex-col justify-center space-y-5"
-          initial={{ opacity: 0, x: 40 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-        >
-          {/* Title */}
-          <input
-            type="text"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            placeholder="Enter news title"
-            className="w-full p-3 rounded-lg bg-slate-800 text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-blue-500"
+        {/* INPUT CARD */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8">
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Paste a news article, claim, or social media post here..."
+            className="w-full h-56 bg-slate-950 border border-slate-800 rounded-xl p-4 resize-none focus:outline-none focus:ring-2 focus:ring-cyan-500"
           />
 
-          {/* Date + Subject */}
-          <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0">
-            <input
-              type="date"
-              name="date"
-              value={formData.date}
-              onChange={handleChange}
-              className="w-full sm:w-1/2 p-3 rounded-lg bg-slate-800 text-gray-100 focus:ring-2 focus:ring-blue-500"
-            />
-
-            <select
-              name="subject"
-              value={formData.subject}
-              onChange={handleChange}
-              className="w-full sm:w-1/2 p-3 rounded-lg bg-slate-800 text-gray-100 focus:ring-2 focus:ring-blue-500"
+          <div className="flex flex-col sm:flex-row gap-4 mt-6">
+            <button
+              onClick={handleAnalyze}
+              disabled={loading}
+              className="flex-1 bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-semibold py-3 rounded-xl transition disabled:opacity-50"
             >
-              <option value="News">News</option>
-              <option value="Social Media">Social Media</option>
-              <option value="WhatsApp Forward">WhatsApp Forward</option>
-            </select>
+              {loading ? "Analyzing..." : "Analyze Credibility"}
+            </button>
+
+            <button
+              onClick={loadSampleNews}
+              type="button"
+              className="px-6 py-3 border border-slate-700 rounded-xl hover:bg-slate-800 transition"
+            >
+              Try Sample
+            </button>
           </div>
 
-          {/* Text */}
-          <textarea
-            name="text"
-            value={formData.text}
-            onChange={handleChange}
-            placeholder="Paste or type the news content here..."
-            className="w-full h-36 p-4 rounded-xl bg-slate-800 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-          />
+          {error && (
+            <div className="mt-5 border border-red-500 bg-red-500/10 text-red-300 rounded-xl p-4">
+              {error}
+            </div>
+          )}
+        </div>
 
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={loading}
-            className={`px-8 py-3 rounded-lg font-semibold text-lg transition-all ${
-              loading ? "bg-blue-400 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600"
-            }`}
-          >
-            {loading ? "Analyzing..." : "Analyze"}
-          </button>
-        </motion.form>
-      </motion.div>
+        {/* RESULT */}
+        {result && (
+          <div className="mt-10 bg-slate-900 border border-slate-800 rounded-3xl p-8">
+            <h2 className="text-2xl font-bold mb-8">
+              Analysis Result
+            </h2>
 
-      {/* Modal */}
-      <AnimatePresence>
-        {showModal && result && (
-          <motion.div
-            className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className={`p-8 rounded-2xl shadow-xl bg-slate-900 border w-[90%] max-w-lg text-center ${
-                label === "fake" ? "border-red-500" : "border-green-500"
-              }`}
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-            >
-              <h2
-                className={`text-3xl font-bold mb-4 ${
-                  label === "fake" ? "text-red-400" : "text-green-400"
+            {/* Verdict */}
+            <div className="mb-6">
+              <p className="text-slate-400 mb-2">
+                Verdict
+              </p>
+
+              <div
+                className={`text-3xl font-bold capitalize ${
+                  verdictColors[result.prediction] || "text-white"
                 }`}
               >
-                {result.prediction} News
-              </h2>
-
-              {result?.confidence && (
-                <p className="text-gray-300 mb-4">
-                  Confidence: {(result.confidence * 100).toFixed(1)}%
-                </p>
-              )}
-
-              <div className="text-gray-400 text-sm mb-6 space-y-1">
-                <p><strong>Title:</strong> {formData.title}</p>
-                <p><strong>Date:</strong> {formData.date}</p>
-                <p><strong>Subject:</strong> {formData.subject}</p>
+                {result.prediction}
               </div>
+            </div>
 
-              <button
-                onClick={() => {
-                  setShowModal(false);
-                  setFormData({ title: "", date: "", subject: "News", text: "" });
-                }}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold transition-all"
-              >
-                Close
-              </button>
-            </motion.div>
-          </motion.div>
+            {/* Confidence */}
+            <div className="mb-8">
+              <p className="text-slate-400 mb-2">
+                Confidence: {result.confidence}%
+              </p>
+
+              <div className="w-full bg-slate-800 h-4 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-cyan-500 transition-all duration-700"
+                  style={{
+                    width: `${result.confidence}%`,
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Explanation */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold mb-3">
+                Explanation
+              </h3>
+
+              <p className="text-slate-300 leading-relaxed">
+                {result.reason}
+              </p>
+            </div>
+
+            {/* Flags */}
+            {result.flags?.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-3">
+                  Warning Flags
+                </h3>
+
+                <div className="space-y-3">
+                  {result.flags.map((flag, index) => (
+                    <div
+                      key={index}
+                      className="bg-slate-800 rounded-xl p-4"
+                    >
+                      ⚠️ {flag}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         )}
-      </AnimatePresence>
+
+        {/* ABOUT */}
+        <section
+          id="about"
+          className="mt-20 text-center"
+        >
+          <h2 className="text-3xl font-bold mb-4">
+            About TruthLens
+          </h2>
+
+          <p className="text-slate-400 max-w-3xl mx-auto leading-relaxed">
+            TruthLens uses modern AI models to evaluate the credibility of
+            news articles, social media posts, and online claims. It helps
+            identify suspicious patterns, misinformation indicators, and
+            credibility concerns while providing transparent reasoning for
+            every assessment.
+          </p>
+        </section>
+      </div>
     </div>
   );
 };

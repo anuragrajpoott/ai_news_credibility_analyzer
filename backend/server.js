@@ -1,118 +1,62 @@
-import axios from "axios";
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 
-export const analyzeNews = async (req, res) => {
-  try {
-    const { text } = req.body;
+import analyzeRoutes from "./src/routes/analyzeRoutes.js";
 
-    if (!text) {
-      return res.status(400).json({
-        success: false,
-        message: "News text is required",
-      });
-    }
+dotenv.config();
 
-    if (text.trim().length < 20) {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide a longer news article or claim",
-      });
-    }
+const app = express();
+const PORT = process.env.PORT || 5000;
 
-    const prompt = `
-You are an expert News Credibility Analyzer.
+app.use(helmet());
 
-Analyze the following news article or claim.
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://your-vercel-app.vercel.app",
+    ],
+    credentials: true,
+  })
+);
 
-Return ONLY valid JSON.
+app.use(express.json({ limit: "3mb" }));
+app.use(express.urlencoded({ extended: true }));
 
-{
-  "prediction": "credible",
-  "confidence": 82,
-  "reason": "Short explanation",
-  "flags": [
-    "flag1",
-    "flag2"
-  ]
-}
-
-Rules:
-
-prediction must be one of:
-- credible
-- misleading
-- suspicious
-- unverifiable
-
-confidence must be between 0 and 100.
-
-flags should contain potential warning signs if present.
-
-News:
-${text}
-`;
-
-    const response = await axios.post(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
-        model: "deepseek/deepseek-chat-v3-0324:free",
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        temperature: 0.2,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    const rawResponse =
-      response.data?.choices?.[0]?.message?.content || "";
-
-    let result;
-
-    try {
-      const cleaned = rawResponse
-        .replace(/```json/g, "")
-        .replace(/```/g, "")
-        .trim();
-
-      result = JSON.parse(cleaned);
-    } catch (err) {
-      console.error("JSON Parse Error:", err);
-
-      return res.status(500).json({
-        success: false,
-        message: "Failed to parse AI response",
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      data: {
-        prediction: result.prediction || "unverifiable",
-        confidence: result.confidence || 0,
-        reason: result.reason || "No explanation provided",
-        flags: result.flags || [],
-      },
-    });
-  } catch (error) {
-    console.error(
-      "Analysis Error:",
-      error?.response?.data || error.message
-    );
-
-    return res.status(500).json({
+app.use(
+  "/api",
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: {
       success: false,
-      message: "Failed to analyze news",
-      error:
-        error?.response?.data?.error?.message ||
-        error.message,
-    });
-  }
-};
+      message: "Too many requests. Please try again later.",
+    },
+  })
+);
+
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    name: "AI News Credibility Analyzer API",
+    status: "running",
+  });
+});
+
+app.use("/api/analyze", analyzeRoutes);
+
+app.use((err, req, res, next) => {
+  console.error(err);
+
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || "Internal Server Error",
+  });
+});
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
