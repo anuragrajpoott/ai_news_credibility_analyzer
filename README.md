@@ -1,197 +1,232 @@
-
-# 📰 Fake News Detector (MERN + AI/ML)
-
-![GitHub last commit](https://img.shields.io/github/last-commit/anuragrajpoott/fake_news_detector?color=blue)
-![GitHub repo size](https://img.shields.io/github/repo-size/anuragrajpoott/fake_news_detector)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Made with](https://img.shields.io/badge/Made%20with-MERN%20%2B%20Python-blueviolet)
+# 🔍 TruthLens — AI News Credibility Analyzer
 
 ![React](https://img.shields.io/badge/Frontend-React-blue)
 ![Node](https://img.shields.io/badge/Backend-Node.js-green)
-![Python](https://img.shields.io/badge/ML%20Service-Python%20(Flask%2FFastAPI)-yellow)
-![MongoDB](https://img.shields.io/badge/Database-MongoDB-brightgreen)
-![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black)
-![Render](https://img.shields.io/badge/ML%20%2B%20Backend-Render-purple)
+![AI](https://img.shields.io/badge/Powered%20By-LLM-purple)
+![Vercel](https://img.shields.io/badge/Frontend-Vercel-black)
+![Render](https://img.shields.io/badge/Backend-Render-purple)
 
 ---
 
 ## 🚀 Overview
-**Fake News Detector** is a full-stack web app that detects whether a news article or statement is **real or fake** using a trained **Machine Learning model**.
 
-This project integrates:
-- **Frontend:** React (Vite)
-- **Backend:** Node.js + Express
-- **ML Service:** Python (Flask/FastAPI)
-- **Database:** MongoDB Atlas
+TruthLens is an AI-powered News Credibility Analyzer that helps users evaluate the reliability of news articles, social media posts, and online claims.
 
-and supports authentication, history tracking, and AI-powered fake news detection — deployed fully on **Vercel** and **Render**.
+Instead of relying on a traditional machine learning classifier, TruthLens uses modern Large Language Models (LLMs) to analyze content, identify credibility concerns, explain reasoning, and highlight warning signs.
+
+---
+
+## ✨ Features
+
+- 📰 Analyze news articles and claims
+- 🤖 AI-powered credibility assessment
+- 📊 Confidence scoring
+- ⚠️ Detection of suspicious indicators
+- 💡 Human-readable explanations
+- ⚡ Fast real-time analysis
+- 🌐 Fully deployed frontend and backend
 
 ---
 
 ## 🧩 Tech Stack
 
-### **Frontend**
-- ⚛️ React + Vite  
-- 🌈 Tailwind / Material UI (if used)  
-- 🔗 Axios for API requests  
-- ☁️ Deployed on **Vercel**
+### Frontend
 
-### **Backend**
-- 🧠 Node.js + Express.js  
-- 🔒 JWT Authentication  
-- 🗄️ MongoDB Atlas (Mongoose ORM)  
-- ☁️ Deployed on **Render**
+- React + Vite
+- Tailwind CSS
+- Axios
+- React Router
 
-### **ML Service**
-- 🐍 Python (Flask / FastAPI)
-- 🤖 Scikit-learn / TensorFlow model
-- 🧮 NLP-based classification
-- ☁️ Deployed on **Render**
+### Backend
+
+- Node.js
+- Express.js
+- OpenRouter API
+- Rate Limiting
+- Helmet Security Middleware
+
+### AI Layer
+
+- OpenRouter
+- DeepSeek Chat Model (Free Tier)
+- Prompt Engineering
+- Structured JSON Responses
 
 ---
 
 ## ⚙️ System Architecture
 
-```bash
-[Frontend - React (Vercel)]
+```text
+[React Frontend]
         │
         ▼
-[Backend - Node/Express (Render)]
+[Node.js / Express API]
         │
         ▼
-[ML Service - Python (Render)]
+[OpenRouter]
         │
         ▼
-[ML Model Prediction]
+[LLM Analysis Engine]
 ```
 
-### 🧠 How It Works
-1️⃣ User enters or pastes a news headline or text.  
-2️⃣ Frontend sends a POST request to the Backend API.  
-3️⃣ Backend forwards the request to the Python ML microservice.  
-4️⃣ ML service predicts whether the news is Real or Fake.  
-5️⃣ Backend sends the response back to the frontend.  
-6️⃣ If logged in, the prediction is stored in the user’s history.
+---
+
+## 🧠 How It Works
+
+1. User pastes a news article, claim, or social media post.
+2. Frontend sends content to the backend API.
+3. Backend generates a credibility-analysis prompt.
+4. AI model evaluates the content.
+5. AI returns:
+   - Credibility Verdict
+   - Confidence Score
+   - Explanation
+   - Warning Flags
+6. Frontend displays the analysis instantly.
 
 ---
 
-## 🔑 Features
+## 📋 Example Response
 
-| Feature | Description |
-|----------|-------------|
-| 🔐 **User Authentication** | Login / Signup using JWT |
-| 🧾 **News History** | Stores all checked articles per user |
-| ❌ **Delete History** | Option to clear saved results |
-| 🧠 **AI/ML Detection** | Detects Fake vs Real news |
-| ⚡ **Quick Check** | Check without logging in |
-| 🌐 **Cloud Deployment** | Fully hosted on Vercel & Render |
+### Input
+
+> Scientists claim a newly discovered plant species can absorb ten times more carbon dioxide than existing forests.
+
+### Output
+
+```json
+{
+  "prediction": "suspicious",
+  "confidence": 76,
+  "reason": "The claim is extraordinary and lacks supporting evidence or sources.",
+  "flags": [
+    "Extraordinary claim",
+    "No source provided"
+  ]
+}
+```
 
 ---
 
-## 🧰 Installation & Setup
+## 📦 Installation
 
-### 1️⃣ Clone the Repository
+### Clone Repository
+
 ```bash
 git clone https://github.com/anuragrajpoott/fake_news_detector.git
+
 cd fake_news_detector
 ```
 
-### 2️⃣ Frontend Setup
+---
+
+## Frontend Setup
+
 ```bash
 cd frontend
+
 npm install
+
 npm run dev
 ```
-Create a `.env` file in `/frontend`:
-```bash
-VITE_BACKEND_URL=https://your-backend.onrender.com
+
+Create:
+
+```env
+VITE_API_URL=http://localhost:5000
 ```
 
-### 3️⃣ Backend Setup
+---
+
+## Backend Setup
+
 ```bash
 cd backend
+
 npm install
+
 npm run dev
 ```
-Create a `.env` file in `/backend`:
-```bash
+
+Create:
+
+```env
 PORT=5000
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_secret_key
-ML_API_URL=https://your-mlservice.onrender.com/predict
-```
 
-### 4️⃣ ML Service Setup
-```bash
-cd mlservice
-python -m venv venv
-venv\Scripts\activate   # For Windows
-# or
-source venv/bin/activate   # For macOS/Linux
-pip install -r requirements.txt
-python pythonapp.py
-```
-The ML service runs locally at:
-```bash
-http://localhost:5002
+OPENROUTER_API_KEY=your_openrouter_key
 ```
 
 ---
 
-## 🌐 Deployment Links
-| Service | URL |
-|----------|-----|
-| 🖥️ **Frontend** | Vercel Deployment |
-| ⚙️ **Backend** | Render Backend |
-| 🤖 **ML API** | Render ML Service |
+## API Endpoint
+
+### Analyze News
+
+```http
+POST /api/analyze
+```
+
+Request:
+
+```json
+{
+  "text": "Paste article or claim here"
+}
+```
+
+Response:
+
+```json
+{
+  "success": true,
+  "data": {
+    "prediction": "credible",
+    "confidence": 84,
+    "reason": "The claim appears consistent with known information and lacks obvious misinformation indicators.",
+    "flags": []
+  }
+}
+```
 
 ---
 
-## 🧪 Example Prediction
-**Input:**
-> “The government has announced a new scheme to provide free Wi-Fi across rural areas.”
+## 🌐 Deployment
 
-**Output:**
-> ✅ Real News (Confidence: 0.82)
-
----
-
-## 📸 Screenshots
-- Login Page  
-- News Check Page  
-- History Page  
-
-(Replace these placeholders with your actual screenshots)
+| Service | Platform |
+|----------|----------|
+| Frontend | Vercel |
+| Backend | Render |
+| AI Layer | OpenRouter |
 
 ---
 
-## 📚 Future Improvements
-- 🧩 Deep Learning model (BERT / LSTM)
-- 🌍 Multi-language fake news detection
-- 📱 Mobile responsive UI
-- 🔊 Voice input support
-- 📊 Advanced analytics dashboard
+## 📈 Future Improvements
+
+- Image-based news analysis
+- OCR support for screenshots
+- Source verification
+- Fact-check references
+- Multi-language support
+- News URL analysis
+- Export analysis reports
 
 ---
 
-## 👩‍💻 Team Members
-| Name | Role |
-|------|------|
-| Anurag Rajpoot | Full Stack Developer |
-| Nandini | ML Engineer |
-| Khushi | Frontend Developer |
-| Shubhanshu | Backend Developer |
+## 👨‍💻 Developer
 
----
+**Anurag Rajpoot**
 
-## 🏁 Conclusion
-This project demonstrates the fusion of AI and Web Technologies to combat misinformation online.  
-By combining Machine Learning with the MERN Stack, we deliver a fast, intelligent, and user-friendly platform for detecting fake news in real time.
+Full Stack Developer
+
+GitHub:
+https://github.com/anuragrajpoott
 
 ---
 
 ## 📄 License
-This project is licensed under the **MIT License** — feel free to use and modify it.
 
-⭐ **If you like this project, don’t forget to star the repo!**  
-👉 [https://github.com/anuragrajpoott/fake_news_detector](https://github.com/anuragrajpoott/fake_news_detector)
+MIT License
+
+---
+
+⭐ If you like this project, consider starring the repository.
