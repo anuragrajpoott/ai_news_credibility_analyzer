@@ -49,7 +49,7 @@ app.get("/api", (req, res) => {
   res.json({ success: true, message: "✅ Fake News Detector API Running" });
 });
 
-app.use("/api/auth", userRoutes);
+
 app.use("/api", newsRoutes);
 
 // Production Serve
