@@ -1,24 +1,9 @@
 import axios from "axios";
 
-export const analyzeNews = async (req, res) => {
-  try {
-    const { text } = req.body;
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+const MODEL = "deepseek/deepseek-chat-v3-0324:free";
 
-    if (!text) {
-      return res.status(400).json({
-        success: false,
-        message: "News text is required",
-      });
-    }
-
-    if (text.trim().length < 20) {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide a longer news article or claim",
-      });
-    }
-
-    const prompt = `
+const buildPrompt = (text) => `
 You are an expert News Credibility Analyzer.
 
 Analyze the following news article or claim.
@@ -36,29 +21,67 @@ Return ONLY valid JSON.
 }
 
 Rules:
-
-prediction must be one of:
-- credible
-- misleading
-- suspicious
-- unverifiable
-
-confidence must be between 0 and 100.
-
-flags should contain potential warning signs if present.
+- prediction must be one of:
+  - credible
+  - misleading
+  - suspicious
+  - unverifiable
+- confidence must be between 0 and 100
+- flags should contain potential warning signs if present
 
 News:
 ${text}
 `;
 
+const sanitizeAiResponse = (content = "") =>
+  content
+    .replace(/```json/gi, "")
+    .replace(/```/g, "")
+    .trim();
+
+const normalizeResult = (result = {}) => ({
+  prediction: result.prediction || "unverifiable",
+  confidence: Math.min(
+    100,
+    Math.max(0, Number(result.confidence) || 0)
+  ),
+  reason: result.reason || "No explanation provided",
+  flags: Array.isArray(result.flags) ? result.flags : [],
+});
+
+export const analyzeNews = async (req, res) => {
+  try {
+    const text = req.body?.text?.trim();
+
+    if (!text) {
+      return res.status(400).json({
+        success: false,
+        message: "News text is required",
+      });
+    }
+
+    if (text.length < 20) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a longer news article or claim",
+      });
+    }
+
+    if (text.length > 10000) {
+      return res.status(400).json({
+        success: false,
+        message: "News text is too long",
+      });
+    }
+
     const response = await axios.post(
-      "https://openrouter.ai/api/v1/chat/completions",
+      OPENROUTER_URL,
       {
-        model: "deepseek/deepseek-chat-v3-0324:free",
+        model: MODEL,
         messages: [
           {
             role: "user",
-            content: prompt,
+            content: buildPrompt(text),
           },
         ],
         temperature: 0.2,
@@ -68,23 +91,21 @@ ${text}
           Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
           "Content-Type": "application/json",
         },
+        timeout: 30000,
       }
     );
 
-    const rawResponse =
+    const rawContent =
       response.data?.choices?.[0]?.message?.content || "";
 
-    let result;
+    let parsedResult;
 
     try {
-      const cleaned = rawResponse
-        .replace(/```json/g, "")
-        .replace(/```/g, "")
-        .trim();
-
-      result = JSON.parse(cleaned);
-    } catch (err) {
-      console.error("JSON Parse Error:", err);
+      parsedResult = JSON.parse(
+        sanitizeAiResponse(rawContent)
+      );
+    } catch (parseError) {
+      console.error("[AI_PARSE_ERROR]", parseError);
 
       return res.status(500).json({
         success: false,
@@ -94,25 +115,17 @@ ${text}
 
     return res.status(200).json({
       success: true,
-      data: {
-        prediction: result.prediction || "unverifiable",
-        confidence: result.confidence || 0,
-        reason: result.reason || "No explanation provided",
-        flags: result.flags || [],
-      },
+      data: normalizeResult(parsedResult),
     });
   } catch (error) {
     console.error(
-      "Analysis Error:",
+      "[ANALYSIS_ERROR]",
       error?.response?.data || error.message
     );
 
     return res.status(500).json({
       success: false,
       message: "Failed to analyze news",
-      error:
-        error?.response?.data?.error?.message ||
-        error.message,
     });
   }
 };

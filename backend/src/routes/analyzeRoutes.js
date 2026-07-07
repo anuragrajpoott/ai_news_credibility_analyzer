@@ -1,10 +1,11 @@
 import express from "express";
 import rateLimit from "express-rate-limit";
+
 import { analyzeNews } from "../controllers/analyzeController.js";
 
 const router = express.Router();
 
-const analyzeLimiter = rateLimit({
+const analyzeRateLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 10,
   standardHeaders: true,
@@ -15,6 +16,6 @@ const analyzeLimiter = rateLimit({
   },
 });
 
-router.post("/", analyzeLimiter, analyzeNews);
+router.post("/", analyzeRateLimiter, analyzeNews);
 
 export default router;
