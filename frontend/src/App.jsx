@@ -1,12 +1,13 @@
-import { Routes, Route } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
+import React from "react";
+
 import Nav from "./components/Nav";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
-import react from "react";
 
 function App() {
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950">
+    <div className="flex min-h-screen flex-col bg-slate-950">
       <Nav />
 
       <main className="flex-1">

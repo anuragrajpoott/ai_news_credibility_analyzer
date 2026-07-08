@@ -1,34 +1,34 @@
 import React from "react";
 
 const Footer = () => {
-  const year = new Date().getFullYear();
+  const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-slate-900 text-gray-300 py-6 border-t border-slate-800">
-      <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between text-center md:text-left space-y-4 md:space-y-0">
-        
-        {/* Brand */}
-        <h2 className="text-xl font-bold tracking-tight">
-          Fake<span className="text-blue-500">News</span>{" "}
-          <span className="hidden sm:inline">Detector</span>
+    <footer className="border-t border-slate-800 bg-slate-900 py-6 text-slate-300">
+      <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 text-center md:flex-row md:text-left">
+        <h2 className="text-xl font-bold tracking-tight text-white">
+          Truth<span className="text-cyan-400">Lens</span>
         </h2>
 
-        {/* Copy */}
-        <p className="text-sm text-gray-400">
-          © {year} FakeNews Detector — All Rights Reserved.
+        <p className="text-sm text-slate-400">
+          © {currentYear} TruthLens. All rights reserved.
         </p>
 
-        {/* Links */}
-        <div className="flex space-x-5">
-          <button className="text-sm hover:text-blue-400 transition-colors">
+        <div
+          aria-label="Footer Links"
+          className="flex items-center gap-5"
+        >
+          <span className="cursor-default text-sm text-slate-400">
             Privacy
-          </button>
-          <button className="text-sm hover:text-blue-400 transition-colors">
+          </span>
+
+          <span className="cursor-default text-sm text-slate-400">
             Terms
-          </button>
-          <button className="text-sm hover:text-blue-400 transition-colors">
+          </span>
+
+          <span className="cursor-default text-sm text-slate-400">
             Contact
-          </button>
+          </span>
         </div>
       </div>
     </footer>
