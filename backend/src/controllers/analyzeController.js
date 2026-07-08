@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-const MODEL = "deepseek/deepseek-chat-v3-0324:free";
+const MODEL = "deepseek/deepseek-chat-v3-0324";
 
 const buildPrompt = (text) => `
 You are an expert News Credibility Analyzer.
